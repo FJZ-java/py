@@ -11,24 +11,40 @@ body {
   font-family: sans-serif;
 }
 canvas {
-  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 #text {
   position: absolute;
-  top: 50%;
+  top: 60%;
   width: 100%;
   text-align: center;
   color: pink;
   font-size: 40px;
+  white-space: nowrap;
+}
+#photo {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   opacity: 0;
   transition: 2s;
+  border-radius: 20px;
 }
 </style>
 </head>
 <body>
 
 <canvas id="c"></canvas>
-<div id="text">做我女朋友好吗，黄翠？ ❤️</div>
+
+<img id="photo" src="photo.jpg" width="300">
+
+<div id="text"></div>
+
+<!-- 🎵 音乐 -->
+<audio id="music" src="music.mp3" autoplay loop></audio>
 
 <script>
 const canvas = document.getElementById("c");
@@ -45,9 +61,10 @@ for (let i = 0; i < 300; i++) {
   });
 }
 
-let phase = 0;
 let tick = 0;
+let phase = 0;
 
+// ❤️ 心形函数
 function heart(t) {
   return {
     x: 16*Math.pow(Math.sin(t),3),
@@ -55,11 +72,56 @@ function heart(t) {
   };
 }
 
+// 💬 打字内容
+const messages = [
+  "To: 小美 ❤️",
+  "从遇见你的那一刻起",
+  "我的世界就变了",
+  "每天都会想起你",
+  "我真的很喜欢你..."
+];
+
+let msgIndex = 0;
+let charIndex = 0;
+let text = "";
+let deleting = false;
+let timer = 0;
+
+function typeEffect() {
+  if (phase !== 3) return;
+
+  let current = messages[msgIndex];
+
+  if (!deleting) {
+    if (charIndex < current.length) {
+      text += current[charIndex++];
+    } else {
+      deleting = true;
+      timer = 60;
+    }
+  } else {
+    if (timer > 0) {
+      timer--;
+    } else if (charIndex > 0) {
+      text = text.slice(0, -1);
+      charIndex--;
+    } else {
+      deleting = false;
+      msgIndex++;
+      if (msgIndex >= messages.length) {
+        phase = 4;
+      }
+    }
+  }
+
+  document.getElementById("text").innerText = text;
+}
+
 function draw() {
   ctx.fillStyle = "black";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // 星星
+  // 🌌 星空
   ctx.fillStyle = "white";
   stars.forEach(s=>{
     s.y += s.s;
@@ -69,7 +131,7 @@ function draw() {
 
   tick++;
 
-  // 🌹 玫瑰阶段
+  // 🌹 玫瑰
   if (phase === 0) {
     for(let i=0;i<200;i++){
       let a = i*0.1 + tick*0.05;
@@ -82,7 +144,7 @@ function draw() {
     if (tick > 150) phase = 1;
   }
 
-  // ❤️ 爱心阶段
+  // ❤️ 爱心
   else if (phase === 1) {
     for(let t=0;t<Math.PI*2;t+=0.02){
       let h = heart(t);
@@ -94,117 +156,21 @@ function draw() {
     if (tick > 350) phase = 2;
   }
 
-  // 💌 文字阶段
+  // 📸 照片淡入
   else if (phase === 2) {
-    document.getElementById("text").style.opacity = 1;
+    let img = document.getElementById("photo");
+    img.style.opacity = 1;
+    if (tick > 500) phase = 3;
   }
 
-  requestAnimationFrame(draw);
-}
-
-draw();
-</script>
-
-</body>
-</html><!DOCTYPE html>
-<html lang="zh">
-<head>
-<meta charset="UTF-8">
-<title>💘 For You</title>
-<style>
-body {
-  margin: 0;
-  background: black;
-  overflow: hidden;
-  font-family: sans-serif;
-}
-canvas {
-  display: block;
-}
-#text {
-  position: absolute;
-  top: 50%;
-  width: 100%;
-  text-align: center;
-  color: pink;
-  font-size: 40px;
-  opacity: 0;
-  transition: 2s;
-}
-</style>
-</head>
-<body>
-
-<canvas id="c"></canvas>
-<div id="text">做我女朋友好吗？ ❤️</div>
-
-<script>
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let stars = [];
-for (let i = 0; i < 300; i++) {
-  stars.push({
-    x: Math.random()*canvas.width,
-    y: Math.random()*canvas.height,
-    s: Math.random()*2
-  });
-}
-
-let phase = 0;
-let tick = 0;
-
-function heart(t) {
-  return {
-    x: 16*Math.pow(Math.sin(t),3),
-    y: -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))
-  };
-}
-
-function draw() {
-  ctx.fillStyle = "black";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // 星星
-  ctx.fillStyle = "white";
-  stars.forEach(s=>{
-    s.y += s.s;
-    if(s.y > canvas.height) s.y = 0;
-    ctx.fillRect(s.x,s.y,2,2);
-  });
-
-  tick++;
-
-  // 🌹 玫瑰阶段
-  if (phase === 0) {
-    for(let i=0;i<200;i++){
-      let a = i*0.1 + tick*0.05;
-      let r = i*0.5;
-      let x = canvas.width/2 + Math.cos(a)*r;
-      let y = canvas.height/2 + Math.sin(a)*r;
-      ctx.fillStyle = "pink";
-      ctx.fillRect(x,y,2,2);
-    }
-    if (tick > 150) phase = 1;
+  // 💬 打字阶段
+  else if (phase === 3) {
+    typeEffect();
   }
 
-  // ❤️ 爱心阶段
-  else if (phase === 1) {
-    for(let t=0;t<Math.PI*2;t+=0.02){
-      let h = heart(t);
-      let x = canvas.width/2 + h.x*15;
-      let y = canvas.height/2 + h.y*15;
-      ctx.fillStyle = "red";
-      ctx.fillRect(x,y,2,2);
-    }
-    if (tick > 350) phase = 2;
-  }
-
-  // 💌 文字阶段
-  else if (phase === 2) {
-    document.getElementById("text").style.opacity = 1;
+  // 💘 最终
+  else if (phase === 4) {
+    document.getElementById("text").innerText = "做我女朋友好吗？ ❤️";
   }
 
   requestAnimationFrame(draw);
